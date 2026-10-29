@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>My Study Planner</h1>
+        <p>Keep your assignments, practicals and exams in one place.</p>
+    </header>
+
+    <main>
+        <section class="form-box">
+            <h2>Add a Task</h2>
+            <form action="/add" method="POST">
+                <label for="title">Task name</label>
+                <input id="title" name="title" type="text" placeholder="Example: Python practical" required>
+
+                <label for="subject">Subject</label>
+                <input id="subject" name="subject" type="text" placeholder="Example: Python" required>
+
+                <label for="due_date">Due date</label>
+                <input id="due_date" name="due_date" type="date" required>
+
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="3">High</option>
+                    <option value="2">Medium</option>
+                    <option value="1">Low</option>
+                </select>
+
+                <button type="submit">Add Task</button>
+            </form>
+        </section>
+
+        <section class="tasks-box">
+            <h2>My Tasks</h2>
+
+            <input id="search" type="text" placeholder="Search tasks..." onkeyup="searchTasks()">
+
+            <div class="filters">
+                <button type="button" onclick="showTasks('all')">All</button>
+                <button type="button" onclick="showTasks('pending')">Pending</button>
+                <button type="button" onclick="showTasks('done')">Completed</button>
+            </div>
+
+            <div id="task-list">
+                {% if tasks %}
+                    {% for task in tasks %}
+                    <div class="task {% if task.done %}completed{% endif %}" data-status="{% if task.done %}done{% else %}pending{% endif %}">
+                        <div>
+                            <h3>{{ task.title }}</h3>
+                            <p>Subject: {{ task.subject }}</p>
+                            <p>Due: {{ task.due_date }}</p>
+                            <p>Priority:
+                                {% if task.priority == "3" %}High
+                                {% elif task.priority == "2" %}Medium
+                                {% else %}Low{% endif %}
+                            </p>
+                        </div>
+                        <div class="task-buttons">
+                            <form action="/complete/{{ task.id }}" method="POST">
+                                <button type="submit">
+                                    {% if task.done %}Undo{% else %}Complete{% endif %}
+                                </button>
+                            </form>
+                            <form action="/delete/{{ task.id }}" method="POST">
+                                <button class="delete" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No tasks yet. Add your first task above.</p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
