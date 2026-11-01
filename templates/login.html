@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Login – StudySpark{% endblock %}
+
+{% block public_content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <i class="fa-solid fa-bolt"></i>
+                <span>StudySpark</span>
+            </a>
+            <h2>Welcome Back!</h2>
+            <p>Enter your credentials to access your study planner</p>
+        </div>
+
+        <form action="{{ url_for('login') }}" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="login_input">Username or Email</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="login_input" name="login_input" placeholder="e.g. student or alex@study.edu" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                <span>Log In</span>
+            </button>
+        </form>
+
+        <div style="margin-top: 18px; padding: 10px 14px; background: var(--primary-light); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--primary-deep); text-align: center;">
+            <i class="fa-solid fa-lightbulb" style="margin-right: 4px;"></i> 
+            <strong>Quick Demo Login:</strong> student &nbsp;|&nbsp; password123
+        </div>
+
+        <div class="auth-footer">
+            <p>Don't have an account yet? <a href="{{ url_for('signup') }}">Sign Up here</a></p>
+            <p style="margin-top: 8px;"><a href="{{ url_for('index') }}"><i class="fa-solid fa-arrow-left"></i> Back to Homepage</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,86 +1,263 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Planner</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <header>
-        <h1>My Study Planner</h1>
-        <p>Keep your assignments, practicals and exams in one place.</p>
+{% extends "base.html" %}
+
+{% block title %}StudySpark – Plan Better. Study Smarter. Achieve More.{% endblock %}
+
+{% block public_content %}
+    <!-- Landing Navigation Bar -->
+    <header class="landing-navbar">
+        <a href="{{ url_for('index') }}" class="brand-logo">
+            <i class="fa-solid fa-bolt"></i>
+            <span>StudySpark</span>
+        </a>
+
+        <ul class="landing-nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+
+        <div class="landing-nav-actions">
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
     </header>
 
-    <main>
-        <section class="form-box">
-            <h2>Add a Task</h2>
-            <form action="/add" method="POST">
-                <label for="title">Task name</label>
-                <input id="title" name="title" type="text" placeholder="Example: Python practical" required>
-
-                <label for="subject">Subject</label>
-                <input id="subject" name="subject" type="text" placeholder="Example: Python" required>
-
-                <label for="due_date">Due date</label>
-                <input id="due_date" name="due_date" type="date" required>
-
-                <label for="priority">Priority</label>
-                <select id="priority" name="priority">
-                    <option value="3">High</option>
-                    <option value="2">Medium</option>
-                    <option value="1">Low</option>
-                </select>
-
-                <button type="submit">Add Task</button>
-            </form>
-        </section>
-
-        <section class="tasks-box">
-            <h2>My Tasks</h2>
-
-            <input id="search" type="text" placeholder="Search tasks..." onkeyup="searchTasks()">
-
-            <div class="filters">
-                <button type="button" onclick="showTasks('all')">All</button>
-                <button type="button" onclick="showTasks('pending')">Pending</button>
-                <button type="button" onclick="showTasks('done')">Completed</button>
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+        <div class="hero-left">
+            <div class="hero-badge">
+                <i class="fa-solid fa-sparkles"></i>
+                <span>Smart Academic Task Planner</span>
+            </div>
+            <h1 class="hero-title">
+                Plan Better. <br>
+                <span class="gradient-text">Study Smarter.</span> <br>
+                Achieve More.
+            </h1>
+            <p class="hero-subtitle">
+                Your personal study companion to organize assignments, master deadlines, track learning progress, and build consistent college study habits.
+            </p>
+            <div class="hero-cta">
+                <a href="{{ url_for('signup') }}" class="btn btn-primary">
+                    <span>Get Started Free</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <span>Explore Features</span>
+                    <i class="fa-solid fa-circle-play"></i>
+                </a>
             </div>
 
-            <div id="task-list">
-                {% if tasks %}
-                    {% for task in tasks %}
-                    <div class="task {% if task.done %}completed{% endif %}" data-status="{% if task.done %}done{% else %}pending{% endif %}">
-                        <div>
-                            <h3>{{ task.title }}</h3>
-                            <p>Subject: {{ task.subject }}</p>
-                            <p>Due: {{ task.due_date }}</p>
-                            <p>Priority:
-                                {% if task.priority == "3" %}High
-                                {% elif task.priority == "2" %}Medium
-                                {% else %}Low{% endif %}
-                            </p>
-                        </div>
-                        <div class="task-buttons">
-                            <form action="/complete/{{ task.id }}" method="POST">
-                                <button type="submit">
-                                    {% if task.done %}Undo{% else %}Complete{% endif %}
-                                </button>
-                            </form>
-                            <form action="/delete/{{ task.id }}" method="POST">
-                                <button class="delete" type="submit">Delete</button>
-                            </form>
-                        </div>
+            <div class="hero-stats-mini">
+                <div>
+                    <h4>100%</h4>
+                    <p>Student Friendly</p>
+                </div>
+                <div>
+                    <h4>DSA</h4>
+                    <p>Powered Logic</p>
+                </div>
+                <div>
+                    <h4>Local</h4>
+                    <p>JSON Data Storage</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero CSS-Based SaaS Illustration -->
+        <div class="hero-mockup-wrapper">
+            <!-- Dashboard Mockup Card -->
+            <div class="hero-card">
+                <div class="mockup-header">
+                    <div class="mockup-dots">
+                        <span class="mockup-dot red"></span>
+                        <span class="mockup-dot yellow"></span>
+                        <span class="mockup-dot green"></span>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No tasks yet. Add your first task above.</p>
-                {% endif %}
-            </div>
-        </section>
-    </main>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">StudySpark Dashboard Preview</span>
+                </div>
 
-    
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">
+                        <span>Semester Progress</span>
+                        <span style="color: var(--primary);">75%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="margin-top: 0;">
+                        <div class="progress-bar-fill" style="width: 75%;"></div>
+                    </div>
+                </div>
+
+                <div class="mockup-tasks">
+                    <div class="mockup-task-item high">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.9rem;">Data Structures Lab Report</div>
+                            <span class="badge badge-priority-high" style="font-size: 0.7rem; padding: 2px 6px;">High Priority</span>
+                        </div>
+                        <span style="font-size: 0.75rem; color: #E03131; font-weight: 600;"><i class="fa-regular fa-clock"></i> Due Today</span>
+                    </div>
+
+                    <div class="mockup-task-item medium">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.9rem;">Web Tech Flask Assignment</div>
+                            <span class="badge badge-priority-medium" style="font-size: 0.7rem; padding: 2px 6px;">Medium Priority</span>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Due in 2 days</span>
+                    </div>
+
+                    <div class="mockup-task-item low">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.9rem;">Database Normalization Notes</div>
+                            <span class="badge badge-priority-low" style="font-size: 0.7rem; padding: 2px 6px;">Low Priority</span>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Due in 5 days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <span class="section-tag">Powerful Productivity</span>
+            <h2 class="section-title">Everything a College Student Needs</h2>
+            <p class="text-muted">Designed specifically to keep your assignments, practicals, and study schedules organized without unnecessary complexity.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-box purple">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <h3>Smart Task Management</h3>
+                <p>Create, edit, organize, and track your study tasks with subjects, due dates, estimated hours, and status toggles.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box pink">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <h3>Task Highlights</h3>
+                <p>Instantly spotlight urgent tasks: Overdue warnings, Due Today alerts, Starred favorites, and High Priority items.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box green">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h3>Study Progress Tracking</h3>
+                <p>Real-time statistical breakdown of total, pending, and completed tasks with animated progress calculations.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box violet">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h3>Smart Recommendations</h3>
+                <p>DSA-powered Priority Queue (Min-Heap) that automatically calculates and suggests your next most crucial study task.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box peach">
+                    <i class="fa-solid fa-arrow-down-short-wide"></i>
+                </div>
+                <h3>Priority-Based Sorting</h3>
+                <p>Organize tasks instantly using academic Bubble Sort logic—sort by priority, due date, recent additions, or alphabetically.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box blue">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </div>
+                <h3>Stack-Based Undo System</h3>
+                <p>Accidentally completed or deleted a task? Use the Last-In-First-Out (LIFO) stack to instantly restore your task.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-section" id="how-it-works">
+        <div class="section-header">
+            <span class="section-tag">Simple 3-Step Flow</span>
+            <h2 class="section-title">How StudySpark Works</h2>
+            <p class="text-muted">Get your entire academic semester organized in less than 2 minutes.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="feature-icon-box purple" style="margin: 0 auto 18px;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h3>Create Your Account</h3>
+                <p class="text-muted">Quick student sign-up with secure local password hashing. Each student has their own private dashboard.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="feature-icon-box peach" style="margin: 0 auto 18px;">
+                    <i class="fa-solid fa-pen-ruler"></i>
+                </div>
+                <h3>Organize Your Study Plan</h3>
+                <p class="text-muted">Add assignments and practicals with subject labels, priorities, and deadlines. Star your most crucial items.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="feature-icon-box green" style="margin: 0 auto 18px;">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h3>Track Progress & Succeed</h3>
+                <p class="text-muted">Receive smart task suggestions, complete tasks, celebrate milestones, and achieve top grades effortlessly.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Banner -->
+    <section class="cta-section" id="about">
+        <h2>Make Every Study Session Count.</h2>
+        <p>Join smart college students who organize their daily tasks and boost their academic performance with StudySpark.</p>
+        <a href="{{ url_for('signup') }}" class="btn-cta-white">
+            <i class="fa-solid fa-rocket"></i>
+            <span>Start Planning Now – It's Free</span>
+        </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="{{ url_for('index') }}" class="brand-logo">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>StudySpark</span>
+                </a>
+                <p>A smart, colorful, and student-friendly task and study productivity planner designed for college success.</p>
+            </div>
+
+            <div class="footer-links-group">
+                <h4>Quick Navigation</h4>
+                <ul>
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="{{ url_for('login') }}">Student Login</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links-group">
+                <h4>Academic Project</h4>
+                <ul>
+                    <li><a href="#features">DSA Concepts</a></li>
+                    <li><a href="#features">Priority Queue</a></li>
+                    <li><a href="#features">Bubble Sort</a></li>
+                    <li><a href="#features">Undo Stack</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 StudySpark. Student Academic Project. Built with Python Flask & Vanilla Web Technologies.</p>
+        </div>
+    </footer>
+{% endblock %}

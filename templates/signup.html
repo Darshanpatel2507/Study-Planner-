@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up – StudySpark{% endblock %}
+
+{% block public_content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <i class="fa-solid fa-bolt"></i>
+                <span>StudySpark</span>
+            </a>
+            <h2>Create Your Account</h2>
+            <p>Start organizing your assignments and study goals</p>
+        </div>
+
+        <form action="{{ url_for('signup') }}" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="text" id="name" name="name" placeholder="e.g. Alex Johnson" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="e.g. alex@college.edu" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Choose a Username *</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-at"></i>
+                    <input type="text" id="username" name="username" placeholder="e.g. alex_student" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password (min 6 characters) *</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="••••••••" minlength="6" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password *</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" minlength="6" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Create Account</span>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
+            <p style="margin-top: 8px;"><a href="{{ url_for('index') }}"><i class="fa-solid fa-arrow-left"></i> Back to Homepage</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

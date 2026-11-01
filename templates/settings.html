@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Settings & Profile – StudySpark{% endblock %}
+{% block page_title %}Account Settings{% endblock %}
+
+{% block content %}
+<div class="settings-grid">
+    <!-- Profile Card -->
+    <div class="settings-card">
+        <h2><i class="fa-solid fa-id-card" style="color: var(--primary);"></i> Student Profile</h2>
+        <p class="subtitle">Your registered student account information.</p>
+
+        <form action="{{ url_for('settings') }}" method="POST" class="modal-form">
+            <input type="hidden" name="action" value="update_profile">
+
+            <div class="form-group">
+                <label for="profile-name">Full Name</label>
+                <input type="text" id="profile-name" name="name" value="{{ user.name if user else session.get('name', '') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" value="@{{ user.username if user else session.get('username', '') }}" disabled style="background: #F1F0F7; color: var(--text-muted); cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" value="{{ user.email if user else '' }}" disabled style="background: #F1F0F7; color: var(--text-muted); cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Registered Date</label>
+                <input type="text" value="{{ user.created_at if user else '2026-11-01' }}" disabled style="background: #F1F0F7; color: var(--text-muted); cursor: not-allowed;">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm" style="align-self: flex-start; margin-top: 6px;">
+                <i class="fa-solid fa-check"></i> Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- Security & Password Card -->
+    <div class="settings-card">
+        <h2><i class="fa-solid fa-lock" style="color: var(--peach-text);"></i> Change Password</h2>
+        <p class="subtitle">Update your account password safely.</p>
+
+        <form action="{{ url_for('settings') }}" method="POST" class="modal-form">
+            <input type="hidden" name="action" value="change_password">
+
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password (min 6 chars)</label>
+                <input type="password" id="new_password" name="new_password" placeholder="••••••••" minlength="6" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_new_password">Confirm New Password</label>
+                <input type="password" id="confirm_new_password" name="confirm_password" placeholder="••••••••" minlength="6" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm" style="align-self: flex-start; margin-top: 6px;">
+                <i class="fa-solid fa-key"></i> Update Password
+            </button>
+        </form>
+    </div>
+
+    <!-- Data Management & Cleanup Card -->
+    <div class="settings-card">
+        <h2><i class="fa-solid fa-broom" style="color: var(--blue-text);"></i> Study Workspace Cleanup</h2>
+        <p class="subtitle">Maintain a clean study planner by removing finished assignments.</p>
+
+        <div style="background: var(--bg-page); padding: 18px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">Clear All Completed Tasks</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                Permanently archive all tasks marked as completed. Pending tasks will remain safe.
+            </p>
+            <form action="{{ url_for('settings') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all completed tasks? This action cannot be undone.');">
+                <input type="hidden" name="action" value="clear_completed">
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fa-solid fa-trash"></i> Clear Completed Tasks
+                </button>
+            </form>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-light); padding-top: 18px;">
+            <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout of StudySpark
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

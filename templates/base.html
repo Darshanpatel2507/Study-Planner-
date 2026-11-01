@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StudySpark – Smart Task & Study Planner{% endblock %}</title>
+    
+    <!-- Google Fonts: Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Flash Notification Toasts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-toast {{ category }}">
+                        <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                        <span>{{ message }}</span>
+                        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if session.get('user_id') %}
+        <!-- =========================================================
+             LOGGED-IN APPLICATION LAYOUT WITH SIDEBAR
+             ========================================================= -->
+        <div class="app-container">
+            <!-- Sidebar Navigation -->
+            <aside class="app-sidebar" id="app-sidebar">
+                <div class="sidebar-brand">
+                    <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>StudySpark</span>
+                    </a>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="{{ url_for('tasks_view') }}" class="nav-link {% if request.endpoint == 'tasks_view' %}active{% endif %}">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>My Tasks</span>
+                    </a>
+                    <a href="{{ url_for('highlights') }}" class="nav-link {% if request.endpoint == 'highlights' %}active{% endif %}">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Task Highlights</span>
+                    </a>
+                    <a href="{{ url_for('settings') }}" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="user-mini-card">
+                        <div class="user-avatar">
+                            {{ session.get('name', 'S')[0]|upper }}
+                        </div>
+                        <div class="user-info-text">
+                            <div class="user-name">{{ session.get('name', 'Student') }}</div>
+                            <div class="user-role">@{{ session.get('username', 'student') }}</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-danger" style="margin-top: 6px;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main App Area -->
+            <div class="app-main">
+                <!-- Top Header -->
+                <header class="app-header">
+                    <div class="header-left" style="display: flex; align-items: center; gap: 14px;">
+                        <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Navigation">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
+                            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                            <p>{{ today_date }}</p>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        {% if can_undo %}
+                            <form action="{{ url_for('undo_action') }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-undo" title="Undo last task change (DSA Stack Pop)">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Undo Action</span>
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <button type="button" class="btn btn-primary btn-sm" onclick="openModal('add-task-modal')">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>New Task</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Page Content Block -->
+                <main class="content-view">
+                    {% block content %}{% endblock %}
+                </main>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             ADD TASK MODAL (Accessible from all logged-in views)
+             ========================================================= -->
+        <div class="modal-overlay" id="add-task-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-plus-circle" style="color: var(--primary); margin-right: 8px;"></i> Add New Study Task</h3>
+                    <button class="modal-close-btn" onclick="closeModal('add-task-modal')">&times;</button>
+                </div>
+                <form action="{{ url_for('add_task') }}" method="POST" class="modal-form">
+                    <div class="form-group">
+                        <label for="modal-title">Task Title *</label>
+                        <input type="text" id="modal-title" name="title" placeholder="e.g., Computer Networks Lab Report" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modal-subject">Subject</label>
+                            <input type="text" id="modal-subject" name="subject" placeholder="e.g., Networks" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-due">Due Date *</label>
+                            <input type="date" id="modal-due" name="due_date" value="{{ today_str }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modal-priority">Priority</label>
+                            <select id="modal-priority" name="priority">
+                                <option value="3">High Priority</option>
+                                <option value="2" selected>Medium Priority</option>
+                                <option value="1">Low Priority</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-hours">Est. Hours</label>
+                            <input type="number" id="modal-hours" name="estimated_hours" step="0.5" min="0.5" value="1.5">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-desc">Description (Optional)</label>
+                        <textarea id="modal-desc" name="description" rows="3" placeholder="Add study notes, links, or specific checklist items..."></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('add-task-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             EDIT TASK MODAL (Populated via JS)
+             ========================================================= -->
+        <div class="modal-overlay" id="edit-task-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 8px;"></i> Edit Study Task</h3>
+                    <button class="modal-close-btn" onclick="closeModal('edit-task-modal')">&times;</button>
+                </div>
+                <form id="edit-task-form" method="POST" class="modal-form">
+                    <div class="form-group">
+                        <label for="edit-title">Task Title *</label>
+                        <input type="text" id="edit-title" name="title" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-subject">Subject</label>
+                            <input type="text" id="edit-subject" name="subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-due-date">Due Date *</label>
+                            <input type="date" id="edit-due-date" name="due_date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-priority">Priority</label>
+                            <select id="edit-priority" name="priority">
+                                <option value="3">High Priority</option>
+                                <option value="2">Medium Priority</option>
+                                <option value="1">Low Priority</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-est-hours">Est. Hours</label>
+                            <input type="number" id="edit-est-hours" name="estimated_hours" step="0.5" min="0.5">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-desc">Description</label>
+                        <textarea id="edit-desc" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-task-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Update Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- For non-authenticated views (Landing page, Login, Signup) -->
+        {% block public_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}My Tasks – StudySpark{% endblock %}
+{% block page_title %}Task Management{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Toolbar Card with Live Search, Sorting, and Category Filters -->
+    <div class="toolbar-card">
+        <div class="toolbar-top">
+            <!-- Client-side real-time search -->
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="task-search-input" placeholder="Search tasks by title, subject, or keyword...">
+            </div>
+
+            <!-- Server-side DSA Bubble Sort selector -->
+            <form action="{{ url_for('tasks_view') }}" method="GET" class="sort-selector">
+                <input type="hidden" name="filter" value="{{ current_filter }}">
+                <label for="sort-select"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort:</label>
+                <select id="sort-select" name="sort" onchange="this.form.submit()">
+                    <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Priority (High to Low)</option>
+                    <option value="due_date" {% if current_sort == 'due_date' %}selected{% endif %}>Due Date (Earliest First)</option>
+                    <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>Recently Added</option>
+                    <option value="alphabetical" {% if current_sort == 'alphabetical' %}selected{% endif %}>Alphabetical (A - Z)</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <a href="{{ url_for('tasks_view', filter='all', sort=current_sort) }}" class="filter-pill {% if current_filter == 'all' %}active{% endif %}">
+                All ({{ stats.total }})
+            </a>
+            <a href="{{ url_for('tasks_view', filter='pending', sort=current_sort) }}" class="filter-pill {% if current_filter == 'pending' %}active{% endif %}">
+                Pending ({{ stats.pending }})
+            </a>
+            <a href="{{ url_for('tasks_view', filter='completed', sort=current_sort) }}" class="filter-pill {% if current_filter == 'completed' %}active{% endif %}">
+                Completed ({{ stats.completed }})
+            </a>
+            <a href="{{ url_for('tasks_view', filter='high', sort=current_sort) }}" class="filter-pill {% if current_filter == 'high' %}active{% endif %}">
+                <i class="fa-solid fa-fire" style="color: #FF6B6B;"></i> High Priority
+            </a>
+            <a href="{{ url_for('tasks_view', filter='medium', sort=current_sort) }}" class="filter-pill {% if current_filter == 'medium' %}active{% endif %}">
+                Medium
+            </a>
+            <a href="{{ url_for('tasks_view', filter='low', sort=current_sort) }}" class="filter-pill {% if current_filter == 'low' %}active{% endif %}">
+                Low
+            </a>
+            <a href="{{ url_for('tasks_view', filter='overdue', sort=current_sort) }}" class="filter-pill {% if current_filter == 'overdue' %}active{% endif %}">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #FA5252;"></i> Overdue
+            </a>
+            <a href="{{ url_for('tasks_view', filter='starred', sort=current_sort) }}" class="filter-pill {% if current_filter == 'starred' %}active{% endif %}">
+                <i class="fa-solid fa-star" style="color: #FAB005;"></i> Starred
+            </a>
+        </div>
+    </div>
+
+    <!-- Tasks List Container -->
+    <div class="tasks-container" id="tasks-list-container">
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="task-card {% if task.done %}completed{% endif %}" data-task-id="{{ task.id }}">
+                    <div class="task-left">
+                        <!-- Toggle Completion Form (Pushes onto DSA Stack for Undo) -->
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn {% if task.done %}checked{% endif %}" title="{% if task.done %}Undo Completion{% else %}Mark as Done{% endif %}">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            {% if task.description %}
+                                <div class="task-desc">{{ task.description }}</div>
+                            {% endif %}
+                            <div class="task-badges">
+                                <span class="badge badge-subject">
+                                    <i class="fa-solid fa-book-bookmark"></i> {{ task.subject }}
+                                </span>
+
+                                <!-- Priority Badge -->
+                                {% if task.priority == '3' %}
+                                    <span class="badge badge-priority-high"><i class="fa-solid fa-arrow-up"></i> High Priority</span>
+                                {% elif task.priority == '2' %}
+                                    <span class="badge badge-priority-medium"><i class="fa-solid fa-minus"></i> Medium</span>
+                                {% else %}
+                                    <span class="badge badge-priority-low"><i class="fa-solid fa-arrow-down"></i> Low</span>
+                                {% endif %}
+
+                                <!-- Due Date Badge with Overdue / Today alert -->
+                                {% if not task.done and task.due_date < today_str %}
+                                    <span class="badge badge-due overdue">
+                                        <i class="fa-solid fa-circle-exclamation"></i> Overdue ({{ task.due_date }})
+                                    </span>
+                                {% elif not task.done and task.due_date == today_str %}
+                                    <span class="badge badge-due today">
+                                        <i class="fa-regular fa-clock"></i> Due Today
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-due">
+                                        <i class="fa-regular fa-calendar"></i> {{ task.due_date }}
+                                    </span>
+                                {% endif %}
+
+                                {% if task.estimated_hours %}
+                                    <span class="badge" style="background: #F8F5FF; color: var(--primary);">
+                                        <i class="fa-solid fa-stopwatch"></i> {{ task.estimated_hours }}h
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Action Buttons: Star, Edit, Delete -->
+                    <div class="task-actions">
+                        <!-- Star / Highlight Task -->
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}" title="{% if task.is_highlighted %}Remove Highlight{% else %}Highlight Task{% endif %}">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+
+                        <!-- Edit Task Modal Trigger -->
+                        <button type="button" class="action-icon-btn" title="Edit Task"
+                            onclick="openEditModal({{ task.id }}, '{{ task.title|replace('\'', '\\\'') }}', '{{ task.subject|replace('\'', '\\\'') }}', '{{ task.description|replace('\'', '\\\'')|replace('\n', ' ') }}', '{{ task.due_date }}', '{{ task.priority }}', {{ task.estimated_hours or 1 }})">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+
+                        <!-- Delete Task (Pushes to Stack for Undo) -->
+                        <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" onsubmit="return confirmDelete('{{ task.title|replace('\'', '\\\'') }}')">
+                            <button type="submit" class="action-icon-btn delete" title="Delete Task">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <h3>No tasks found in this view</h3>
+                <p>Try switching filters, clearing your search, or adding a new study assignment.</p>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openModal('add-task-modal')">
+                    <i class="fa-solid fa-plus"></i> Add New Task
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

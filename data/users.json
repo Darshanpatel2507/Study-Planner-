@@ -1,0 +1,10 @@
+[
+    {
+        "id": 1,
+        "name": "Het Patel",
+        "username": "student",
+        "email": "student@example.com",
+        "password": "scrypt:32768:8:1$udQMiMPg0yhqrFdr$3aabe98744b73f48247fe02e2857eae6efd2a3f685df558372017ac757bcbe7925f6649a7f6e3980fc668cff646059f7bb54937719f089b103c91c3c763be4ec",
+        "created_at": "2026-11-01"
+    }
+]

@@ -1,0 +1,218 @@
+================================================================================
+STUDYSPARK – SMART TASK & STUDY PLANNER
+ACADEMIC PROJECT ARCHITECTURE, DSA CONCEPTS, AND APPLICATION FLOW
+================================================================================
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+Project Name : StudySpark
+Type         : Academic Full-Stack Web Application
+Purpose      : A modern, student-friendly SaaS-style productivity tool to manage 
+               study tasks, deadlines, priorities, and habits with clear DSA logic.
+Core Tech    : Python 3, Flask, Vanilla HTML5, Vanilla CSS3, JavaScript (ES6),
+               Local JSON file storage.
+
+
+2. PROJECT DIRECTORY STRUCTURE
+--------------------------------------------------------------------------------
+StudySpark/
+│
+├── app.py                     # Main Flask backend controller (routes, auth, session, data flow)
+├── dsa_operations.py          # Pure Python DSA module (Search, Sort, Heap, Stack, Hash Map)
+├── requirements.txt           # Python dependencies (Flask >= 3.0.0)
+├── README.md                  # Main project documentation & setup guide
+├── project_overview.txt       # Complete concepts, structure & flow explanation (this file)
+│
+├── data/                      # Local JSON storage folder
+│   ├── users.json             # Stores registered student accounts (hashed passwords)
+│   └── tasks.json             # Stores study tasks with student user IDs
+│
+├── templates/                 # Jinja2 HTML templates
+│   ├── base.html              # Core layout (header, sidebar, modals, notifications)
+│   ├── index.html             # SaaS landing page (hero, features, how-it-works, CTA)
+│   ├── login.html             # Student login page
+│   ├── signup.html            # Student registration page
+│   ├── dashboard.html         # Personal dashboard (stats, DSA recommendation, overview)
+│   ├── tasks.html             # Full task management (search, filter, sort, edit, delete)
+│   ├── highlights.html        # Categorized highlights (overdue, today, high priority, starred)
+│   └── settings.html          # Profile management, password change, and cleanup
+│
+└── static/                    # Frontend assets
+    ├── css/
+    │   └── style.css          # Design system (colors, responsive layout, smooth transitions)
+    ├── js/
+    │   └── main.js            # Client-side logic (live search, modals, toast auto-dismiss)
+    ├── script.js              # Backward-compatible script loader
+    └── style.css              # Backward-compatible stylesheet loader
+
+
+3. DATA STRUCTURES & ALGORITHMS (DSA) CONCEPTS USED
+--------------------------------------------------------------------------------
+Every DSA concept in StudySpark has an authentic practical purpose:
+
+A. LIST (Array)
+   - Where: Tasks list and user list in memory and JSON.
+   - Purpose: Sequential collection of task dictionaries. Allows iteration, indexing,
+     and appending new records.
+
+B. DICTIONARY (Key-Value Mapping)
+   - Where: Individual Task and User entities.
+   - Purpose: Stores structured task attributes:
+     {
+       "id": 1,
+       "user_id": 1,
+       "title": "Data Structures Assignment",
+       "subject": "Computer Science",
+       "description": "Implement Binary Search Trees",
+       "due_date": "2026-11-03",
+       "priority": "3",
+       "estimated_hours": 3.0,
+       "done": false,
+       "is_highlighted": true,
+       "created_at": "2026-10-28"
+     }
+
+C. LINEAR SEARCH (Algorithm - O(N) Time Complexity)
+   - Function: `linear_search_task(tasks, task_id)` in dsa_operations.py
+   - Purpose: Traverses the task list sequentially element-by-element to locate
+     a task by its unique ID for editing, toggling completion, or deleting.
+   - Student Viva Note: Best for small to medium local datasets; easy to trace
+     and demonstrate step-by-step.
+
+D. BUBBLE SORT (Algorithm - O(N^2) Time Complexity)
+   - Function: `bubble_sort_tasks(tasks, sort_by)` in dsa_operations.py
+   - Purpose: Reorders tasks using adjacent comparisons and swaps based on:
+     * 'priority'    : High priority (3 -> 2 -> 1) first; breaks ties by earlier due date.
+     * 'due_date'    : Earliest deadline first.
+     * 'alphabetical': Task title A to Z.
+     * 'recent'      : Newest task ID first.
+   - Student Viva Note: Excellent for viva examination to explain pairwise comparison,
+     swapping logic, and custom multi-criteria sorting keys.
+
+E. PRIORITY QUEUE / HEAP (Data Structure - O(log N) Push/Pop)
+   - Function: `get_smart_recommendation(tasks)` using Python's `heapq` module
+   - Purpose: Evaluates all pending tasks and selects the single most critical task
+     for the student to work on next.
+   - Scoring Logic:
+     * Urgency = (Priority * 100) + Deadline Urgency Score
+     * Overdue tasks receive a +150 boost
+     * Due-today tasks receive a +100 boost
+     * Approaching tasks receive a +50 boost
+     * Pushed as a negated tuple into min-heap: (-urgency, days_left, task_id, task, reason)
+     * Most critical task is popped at O(1) from the top of the heap.
+
+F. STACK (LIFO Data Structure - Last-In, First-Out)
+   - Class: `ActionStack` / `undo_stack` in dsa_operations.py
+   - Operations: `push(action)`, `pop()`, `is_empty()`, `peek()`
+   - Purpose: Powers the top-bar "Undo Action" button.
+     * When a task is deleted or marked complete, the previous state is pushed onto the stack.
+     * When the user clicks "Undo Action", the top action is popped and reverted immediately.
+
+G. HASH MAP (Dictionary Lookup - O(1) Time Complexity)
+   - Function: `build_task_hash_map(tasks)` in dsa_operations.py
+   - Purpose: Creates a direct `{task_id: task}` mapping for instantaneous O(1) lookup
+     without looping through the entire dataset.
+
+H. FILTERING (Conditional Iteration)
+   - Function: `filter_tasks_by_category(tasks, category)` in dsa_operations.py
+   - Purpose: Evaluates criteria dynamically to return subsets:
+     * 'pending'  : Tasks where done == False
+     * 'completed': Tasks where done == True
+     * 'today'    : Tasks where due_date == today's date
+     * 'overdue'  : Tasks where due_date < today and not completed
+     * 'upcoming' : Tasks due within the next 7 days
+     * 'starred'  : Tasks where is_highlighted == True
+
+
+4. END-TO-END WEBSITE FLOW
+--------------------------------------------------------------------------------
+
+[Step 1: Visitor Enters Site]
+   │
+   ├──> URL: GET "/" (Landing Page)
+   │    * If user already logged in -> auto redirects to "/dashboard".
+   │    * If guest -> displays SaaS Landing Page:
+   │         - Hero Section: "Plan Better. Study Smarter. Achieve More."
+   │         - Clean Interactive Dashboard Mockup Card
+   │         - 6 Feature Cards (Task Management, Highlights, Progress, Heap Recs, Sort, Undo)
+   │         - 3-Step "How It Works" Flow
+   │         - Call-To-Action (CTA) Banner & Footer
+   │
+[Step 2: Authentication]
+   │
+   ├──> Sign Up: GET & POST "/signup"
+   │    * Validates full name, email, username, matching passwords (min 6 chars).
+   │    * Checks data/users.json for existing username/email.
+   │    * Hashes password securely using Werkzeug `generate_password_hash`.
+   │    * Generates new unique student ID and auto-logs the student in.
+   │
+   ├──> Login: GET & POST "/login"
+   │    * Accepts username or email + password.
+   │    * Verifies password using `check_password_hash`.
+   │    * Sets Flask session: session['user_id'], session['username'], session['name'].
+   │    * Redirects to "/dashboard".
+   │
+   └──> Logout: GET "/logout"
+        * Clears session and redirects to "/login" with a flash notice.
+
+[Step 3: Personal Dashboard ("Overview")]
+   │
+   ├──> URL: GET "/dashboard"
+   │    * Verifies session['user_id'] (unauthorized users redirected to login).
+   │    * Loads exclusively current student's tasks from data/tasks.json (Data Isolation).
+   │    * Computes live statistics:
+   │         Total Tasks, Completed Tasks, Pending Tasks, Progress Percentage.
+   │    * Runs DSA Priority Queue (`get_smart_recommendation`) to display the Smart Recommendation card.
+   │    * Renders Today's Overview:
+   │         - Urgent tasks due today
+   │         - Overdue warning banner (if any)
+   │         - Upcoming tasks this week
+   │         - Recently completed tasks with revert buttons
+
+[Step 4: Task Management]
+   │
+   ├──> URL: GET "/tasks"
+   │    * Supports real-time client-side live search (instantly filters cards as user types).
+   │    * Supports Category Filters: All, Pending, Completed, High, Medium, Low, Overdue, Starred.
+   │    * Supports DSA Bubble Sort selector: Priority (High->Low), Due Date, Recent, Alphabetical.
+   │
+   ├──> Actions on Tasks:
+   │    * Add Task    : POST "/tasks/add" (title, subject, description, due date, priority, hours)
+   │    * Edit Task   : POST "/tasks/edit/<id>" (opens modal, pre-populates fields, updates JSON)
+   │    * Complete/Undo: POST "/tasks/toggle/<id>" (flips done status, pushes to Undo Stack)
+   │    * Star Task   : POST "/tasks/star/<id>" (toggles is_highlighted)
+   │    * Delete Task : POST "/tasks/delete/<id>" (pushes to Undo Stack, removes from list)
+   │    * Global Undo : POST "/tasks/undo" (pops from Undo Stack, restores previous state)
+
+[Step 5: Task Highlights]
+   │
+   ├──> URL: GET "/highlights"
+   │    * Dedicated view organizing urgent student tasks with specific color coding:
+   │         1. Starred & Pinned Tasks   (Purple Accent)
+   │         2. Overdue Tasks            (Red Accent)
+   │         3. Today's Urgent Tasks     (Orange / Peach Accent)
+   │         4. High-Priority Tasks      (Pink Accent)
+   │         5. Upcoming Next 7 Days     (Sky Blue Accent)
+   │         6. Recently Completed       (Mint Green Accent)
+
+[Step 6: Settings & Profile]
+   │
+   ├──> URL: GET & POST "/settings"
+   │    * View student info (Full Name, Username, Email, Registration Date).
+   │    * Edit Name: Updates session and users.json.
+   │    * Change Password: Verifies current password and sets new hashed password.
+   │    * Workspace Cleanup: Safely deletes all completed tasks while keeping pending ones.
+
+
+5. SECURITY & DATA ISOLATION SUMMARY
+--------------------------------------------------------------------------------
+1. User Isolation: Every task has a `user_id` field. Every query, edit, and delete
+   operation filters by `task.get("user_id") == session["user_id"]`. One student cannot
+   see or modify another student's data.
+2. Password Hashing: Uses Werkzeug's secure hashing (scrypt / pbkdf2). No plain-text
+   passwords are ever stored.
+3. Protected Routes: All private endpoints check `if 'user_id' not in session:` and
+   redirect unauthorized visitors to the login page.
+4. Safe File Writing: Standard JSON reading and writing with directory checks ensure
+   data persistence across application restarts.
+================================================================================

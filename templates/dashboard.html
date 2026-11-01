@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard – StudySpark{% endblock %}
+{% block page_title %}{{ greeting }}, {{ session.get('name', 'Student') }} 👋{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+
+    <!-- 4 Dashboard Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="stat-content" style="flex: 1;">
+                <h3>{{ stats.total }}</h3>
+                <p>Total Tasks</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-content" style="flex: 1;">
+                <h3>{{ stats.completed }}</h3>
+                <p>Completed Tasks</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon peach">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="stat-content" style="flex: 1;">
+                <h3>{{ stats.pending }}</h3>
+                <p>Pending Tasks</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="stat-content" style="flex: 1;">
+                <h3>{{ stats.progress }}%</h3>
+                <p>Overall Progress</p>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: {{ stats.progress }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Study Recommendation (DSA: Priority Queue using heapq) -->
+    <div class="recommendation-banner">
+        <div class="rec-left">
+            <div class="rec-badge-icon">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div class="rec-content">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <h3>Smart Study Recommendation</h3>
+                    <span class="dsa-tag"><i class="fa-solid fa-microchip"></i> DSA Priority Queue (Heap)</span>
+                </div>
+                {% if recommendation %}
+                    <p style="margin-top: 4px; font-weight: 600; color: var(--text-main);">
+                        "{{ recommendation.task.title }}" &nbsp;
+                        <span class="badge badge-subject">{{ recommendation.task.subject }}</span>
+                        {% if recommendation.task.priority == '3' %}
+                            <span class="badge badge-priority-high">High Priority</span>
+                        {% elif recommendation.task.priority == '2' %}
+                            <span class="badge badge-priority-medium">Medium Priority</span>
+                        {% else %}
+                            <span class="badge badge-priority-low">Low Priority</span>
+                        {% endif %}
+                    </p>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">
+                        <i class="fa-solid fa-circle-info" style="color: var(--primary);"></i> {{ recommendation.reason }}
+                    </p>
+                {% else %}
+                    <p style="margin-top: 4px;">Awesome job! You have no pending tasks right now. Take a break or add a new goal.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if recommendation %}
+            <div style="display: flex; gap: 8px;">
+                <form action="{{ url_for('toggle_task', task_id=recommendation.task.id) }}" method="POST">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-check"></i> Complete
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Overdue Alert (If any overdue tasks exist) -->
+    {% if overdue_tasks %}
+        <div style="background: #FFF5F5; border: 1.5px solid #FFD8D8; border-radius: var(--radius-md); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #E03131; font-size: 1.3rem;"></i>
+                <div>
+                    <strong style="color: #C92A2A;">You have {{ overdue_tasks|length }} overdue task(s)!</strong>
+                    <div style="font-size: 0.85rem; color: #721C24;">These deadlines have passed. Please review them promptly.</div>
+                </div>
+            </div>
+            <a href="{{ url_for('highlights') }}" class="btn btn-sm btn-danger">View Highlights</a>
+        </div>
+    {% endif %}
+
+    <!-- Today's Overview & Recent Activity Grid -->
+    <div class="overview-grid">
+        <!-- Left: Today's Tasks & Upcoming Tasks -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Today's Tasks Card -->
+            <div class="overview-card">
+                <div class="card-title-row">
+                    <h2><i class="fa-solid fa-calendar-day" style="color: var(--peach-text);"></i> Due Today ({{ today_tasks|length }})</h2>
+                    <button class="btn btn-outline btn-sm" onclick="openModal('add-task-modal')">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+
+                {% if today_tasks %}
+                    <div class="tasks-container">
+                        {% for task in today_tasks %}
+                            <div class="task-card">
+                                <div class="task-left">
+                                    <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                                        <button type="submit" class="complete-btn" title="Mark Done">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <div class="task-info">
+                                        <div class="task-title">{{ task.title }}</div>
+                                        <div class="task-badges">
+                                            <span class="badge badge-subject">{{ task.subject }}</span>
+                                            <span class="badge badge-due today"><i class="fa-regular fa-clock"></i> Today</span>
+                                            {% if task.priority == '3' %}
+                                                <span class="badge badge-priority-high">High</span>
+                                            {% elif task.priority == '2' %}
+                                                <span class="badge badge-priority-medium">Medium</span>
+                                            {% else %}
+                                                <span class="badge badge-priority-low">Low</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-actions">
+                                    <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                                        <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}" title="Star Task">
+                                            <i class="fa-solid fa-star"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 25px 15px;">
+                        <i class="fa-solid fa-calendar-check" style="font-size: 2.2rem; color: #20C997;"></i>
+                        <h4>No tasks due today!</h4>
+                        <p style="font-size: 0.85rem; margin-bottom: 0;">You're free or can work on upcoming assignments ahead of time.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Upcoming Deadlines (Next 7 days) -->
+            <div class="overview-card">
+                <div class="card-title-row">
+                    <h2><i class="fa-solid fa-calendar-week" style="color: var(--blue-text);"></i> Upcoming This Week ({{ upcoming_tasks|length }})</h2>
+                    <a href="{{ url_for('tasks_view') }}" class="btn btn-outline btn-sm">View All</a>
+                </div>
+
+                {% if upcoming_tasks %}
+                    <div class="tasks-container">
+                        {% for task in upcoming_tasks %}
+                            <div class="task-card">
+                                <div class="task-left">
+                                    <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                                        <button type="submit" class="complete-btn" title="Mark Done">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <div class="task-info">
+                                        <div class="task-title">{{ task.title }}</div>
+                                        <div class="task-badges">
+                                            <span class="badge badge-subject">{{ task.subject }}</span>
+                                            <span class="badge badge-due"><i class="fa-regular fa-calendar"></i> {{ task.due_date }}</span>
+                                            {% if task.priority == '3' %}
+                                                <span class="badge badge-priority-high">High</span>
+                                            {% elif task.priority == '2' %}
+                                                <span class="badge badge-priority-medium">Med</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-actions">
+                                    <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                                        <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}" title="Star Task">
+                                            <i class="fa-solid fa-star"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 25px 15px;">
+                        <i class="fa-solid fa-bell-slash" style="font-size: 2.2rem; color: #CED4DA;"></i>
+                        <h4>No upcoming tasks in the next 7 days</h4>
+                        <p style="font-size: 0.85rem; margin-bottom: 0;">Add new tasks to stay ahead of your syllabus.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Recently Completed & Productivity Card -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Recently Completed -->
+            <div class="overview-card">
+                <div class="card-title-row">
+                    <h2><i class="fa-solid fa-circle-check" style="color: var(--green-text);"></i> Recently Completed</h2>
+                    <span class="badge-count">{{ recent_completed|length }}</span>
+                </div>
+
+                {% if recent_completed %}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for task in recent_completed %}
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-page); border-radius: var(--radius-sm);">
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 600; text-decoration: line-through; color: var(--text-muted);">{{ task.title }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">{{ task.subject }}</div>
+                                </div>
+                                <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="font-size: 0.75rem; padding: 4px 8px;" title="Undo completion">
+                                        <i class="fa-solid fa-rotate-left"></i> Revert
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 25px 15px;">
+                        <i class="fa-regular fa-clipboard" style="font-size: 2rem; color: #D7D5E2;"></i>
+                        <h4>No completed tasks yet</h4>
+                        <p style="font-size: 0.85rem; margin-bottom: 0;">Check off tasks as you finish them to build momentum!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Academic Quick Study Tips Card -->
+            <div class="overview-card" style="background: linear-gradient(135deg, #FFFFFF 0%, #FAF8FF 100%);">
+                <div class="card-title-row">
+                    <h2><i class="fa-solid fa-lightbulb" style="color: #FAB005;"></i> Quick Study Tip</h2>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+                    <p style="margin-bottom: 10px;"><strong>The 50/10 Rule:</strong> Study with high focus for 50 minutes, then take a full 10-minute mental break. Hydrate and avoid phone screens during your break.</p>
+                    <p style="font-size: 0.82rem; color: var(--primary);">Tip: Use the <strong>Task Highlights</strong> page to target your high-priority assignments first.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

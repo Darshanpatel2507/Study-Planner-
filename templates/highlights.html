@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Task Highlights – StudySpark{% endblock %}
+{% block page_title %}Task Highlights ⭐{% endblock %}
+
+{% block content %}
+<div class="highlights-header">
+    <p class="text-muted" style="margin-bottom: 24px;">
+        Curated view of your highest priority deadlines, overdue warnings, starred favorites, and recent accomplishments.
+    </p>
+</div>
+
+<!-- Category A: Starred / Highlighted Tasks (Purple Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid var(--primary);">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-star" style="color: #FAB005;"></i> 
+            Starred & Pinned Tasks
+        </h2>
+        <span class="badge-count" style="background: var(--primary-light); color: var(--primary-deep);">{{ starred|length }}</span>
+    </div>
+
+    {% if starred %}
+        <div class="tasks-container">
+            {% for task in starred %}
+                <div class="task-card {% if task.done %}completed{% endif %}">
+                    <div class="task-left">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn {% if task.done %}checked{% endif %}">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-due"><i class="fa-regular fa-calendar"></i> Due {{ task.due_date }}</span>
+                                {% if task.priority == '3' %}
+                                    <span class="badge badge-priority-high">High Priority</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star starred" title="Unstar">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem; font-style: italic;">No starred tasks. Click the star icon on any task to pin it here.</p>
+    {% endif %}
+</div>
+
+<!-- Category B: Overdue Tasks (Red Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid #E03131;">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-triangle-exclamation" style="color: #E03131;"></i> 
+            Overdue Tasks (Need Immediate Attention)
+        </h2>
+        <span class="badge-count" style="background: #FFE3E3; color: #E03131;">{{ overdue_tasks|length }}</span>
+    </div>
+
+    {% if overdue_tasks %}
+        <div class="tasks-container">
+            {% for task in overdue_tasks %}
+                <div class="task-card" style="background: #FFFBFB; border-color: #FFD8D8;">
+                    <div class="task-left">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <div class="task-info">
+                            <div class="task-title" style="color: #C92A2A;">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-due overdue"><i class="fa-solid fa-clock"></i> Overdue (Deadline: {{ task.due_date }})</span>
+                                {% if task.priority == '3' %}
+                                    <span class="badge badge-priority-high">High Priority</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem; color: #20C997;">
+            <i class="fa-solid fa-circle-check" style="color: #20C997;"></i> Excellent! You have no overdue assignments.
+        </p>
+    {% endif %}
+</div>
+
+<!-- Category C: Due Today (Orange / Peach Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid var(--peach-text);">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-calendar-day" style="color: var(--peach-text);"></i> 
+            Today's Urgent Tasks
+        </h2>
+        <span class="badge-count" style="background: var(--peach); color: var(--peach-text);">{{ today_tasks|length }}</span>
+    </div>
+
+    {% if today_tasks %}
+        <div class="tasks-container">
+            {% for task in today_tasks %}
+                <div class="task-card">
+                    <div class="task-left">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-due today"><i class="fa-solid fa-fire"></i> Due Today</span>
+                                {% if task.priority == '3' %}
+                                    <span class="badge badge-priority-high">High</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem;">No tasks due today. Everything on schedule!</p>
+    {% endif %}
+</div>
+
+<!-- Category D: High Priority Tasks (Red / Pink Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid var(--pink-text);">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-fire-flame-curved" style="color: var(--pink-text);"></i> 
+            High Priority Study Tasks
+        </h2>
+        <span class="badge-count" style="background: var(--soft-pink); color: var(--pink-text);">{{ high_priority|length }}</span>
+    </div>
+
+    {% if high_priority %}
+        <div class="tasks-container">
+            {% for task in high_priority %}
+                <div class="task-card">
+                    <div class="task-left">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-priority-high">High Priority</span>
+                                <span class="badge badge-due"><i class="fa-regular fa-calendar"></i> Due {{ task.due_date }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem;">No pending high-priority tasks.</p>
+    {% endif %}
+</div>
+
+<!-- Category E: Upcoming Tasks in Next 7 Days (Sky Blue Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid var(--blue-text);">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-calendar-week" style="color: var(--blue-text);"></i> 
+            Upcoming Tasks (Next 7 Days)
+        </h2>
+        <span class="badge-count" style="background: var(--sky-blue); color: var(--blue-text);">{{ upcoming_tasks|length }}</span>
+    </div>
+
+    {% if upcoming_tasks %}
+        <div class="tasks-container">
+            {% for task in upcoming_tasks %}
+                <div class="task-card">
+                    <div class="task-left">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="complete-btn">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-due"><i class="fa-regular fa-calendar"></i> Due {{ task.due_date }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('star_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="action-icon-btn star {% if task.is_highlighted %}starred{% endif %}">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem;">No tasks scheduled for the next 7 days.</p>
+    {% endif %}
+</div>
+
+<!-- Category F: Recently Completed (Mint Green Accent) -->
+<div class="highlight-category-box" style="border-left: 5px solid var(--green-text);">
+    <div class="category-header">
+        <h2>
+            <i class="fa-solid fa-circle-check" style="color: var(--green-text);"></i> 
+            Recently Completed Accomplishments
+        </h2>
+        <span class="badge-count" style="background: var(--mint-green); color: var(--green-text);">{{ recent_completed|length }}</span>
+    </div>
+
+    {% if recent_completed %}
+        <div class="tasks-container">
+            {% for task in recent_completed %}
+                <div class="task-card completed">
+                    <div class="task-left">
+                        <div class="complete-btn checked" style="cursor: default;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-badges">
+                                <span class="badge badge-subject">{{ task.subject }}</span>
+                                <span class="badge badge-due"><i class="fa-solid fa-check-double"></i> Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="btn btn-outline btn-sm" style="font-size: 0.78rem;">
+                                <i class="fa-solid fa-rotate-left"></i> Revert
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted" style="font-size: 0.9rem;">No completed tasks yet. Finish a task to see it celebrated here!</p>
+    {% endif %}
+</div>
+{% endblock %}
